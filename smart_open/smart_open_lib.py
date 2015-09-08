@@ -445,20 +445,13 @@ class S3OpenWrite(object):
     def __enter__(self):
         return self
 
-    def _termination_error(self):
-        logger.exception("encountered error while terminating multipart upload; attempting cancel")
-        self.outbucket.cancel_multipart_upload(self.mp.key_name, self.mp.id)
-        logger.info("cancel completed")
-
     def __exit__(self, type, value, traceback):
-        if type is not None:
-            self._termination_error()
-            return False
-
         try:
             self.close()
         except:
-            self._termination_error()
+            logger.exception("encountered error while terminating multipart upload; attempting cancel")
+            self.outbucket.cancel_multipart_upload(self.mp.key_name, self.mp.id)
+            logger.info("cancel completed")
             raise
 
 
